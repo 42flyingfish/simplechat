@@ -1,21 +1,24 @@
 package com.example.simplechat
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.simplechat.databinding.ActivityMainBinding
+import com.example.simplechat.databinding.ActivitySigninBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
-class MainActivity : AppCompatActivity() {
+class SigninActivity : AppCompatActivity() {
 
-    private lateinit var binding : ActivityMainBinding
+    private lateinit var binding : ActivitySigninBinding
+    private lateinit var mAuth : FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivitySigninBinding.inflate(layoutInflater)
         enableEdgeToEdge()
-        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -23,6 +26,15 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        startActivity(Intent(this, SigninActivity::class.java))
+        binding.centertext.text = "Blah"
+
+        mAuth = Firebase.auth
+
+        if (mAuth.currentUser == null) {
+            binding.centertext.text = "No user"
+        } else {
+            binding.centertext.text = "We have a user ${mAuth.currentUser}"
+        }
+
     }
 }
