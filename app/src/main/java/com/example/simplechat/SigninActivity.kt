@@ -1,6 +1,8 @@
 package com.example.simplechat
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -26,14 +28,50 @@ class SigninActivity : AppCompatActivity() {
             insets
         }
 
-        binding.centertext.text = "Blah"
+        mAuth = FirebaseAuth.getInstance()
 
-        mAuth = Firebase.auth
+        binding.registerButton.setOnClickListener {
+            val emailEditText = binding.emailEditText.text
+            val email = emailEditText.toString()
 
-        if (mAuth.currentUser == null) {
-            binding.centertext.text = "No user"
-        } else {
-            binding.centertext.text = "We have a user ${mAuth.currentUser}"
+            val passwordEditText = binding.passwordEditText.text
+            val password = passwordEditText.toString()
+
+            Log.d("Whooo", "onCreate: $email $password")
+
+            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this,
+                        "Registration Successful",
+                        Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this,
+                        "Registration Failed: " + task.exception?.message.toString(),
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
+        binding.loginButton.setOnClickListener {
+            val emailEditText = binding.emailEditText.text
+            val email = emailEditText.toString()
+
+            val paswordEditText = binding.passwordEditText.text
+            val password = paswordEditText.toString()
+
+            mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(baseContext,
+                        "Login Successful",
+                        Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Toast.makeText(baseContext,
+                        "Authentication failed",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
     }
