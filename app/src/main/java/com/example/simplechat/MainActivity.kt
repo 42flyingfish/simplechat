@@ -10,11 +10,18 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.simplechat.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.database
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityMainBinding
     private lateinit var mAuth : FirebaseAuth
+    private lateinit var mData : DatabaseReference
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,8 +39,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SigninActivity::class.java))
 
 
+
         Toast.makeText(baseContext,
             "You made it ${mAuth.currentUser?.email}",
             Toast.LENGTH_LONG).show()
+
+        mData = Firebase.database.reference
+
+        val database = Firebase.database
+        val myRef = database.reference.child("messages")
+
+        val myMessage = Message("This is a test", mAuth.currentUser?.email.toString())
+
+        database.reference.child("messages").push().setValue(myMessage)
     }
 }
