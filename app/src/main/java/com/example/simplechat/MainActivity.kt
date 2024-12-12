@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.simplechat.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -21,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var mAuth : FirebaseAuth
     private lateinit var mData : DatabaseReference
+    private lateinit var adapter: ChatMessageAdapter
+    private val messages = mutableListOf<Message>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +51,28 @@ class MainActivity : AppCompatActivity() {
         mData = Firebase.database.reference
 
         val database = Firebase.database
-        val myRef = database.reference.child("messages")
 
-        val myMessage = Message("This is a test", mAuth.currentUser?.email.toString())
 
-        database.reference.child("messages").push().setValue(myMessage)
+        // Dummy messages to check the recycler
+        messages.add(Message("what", "how.com"))
+        messages.add(Message("woooot", "how.com"))
+        messages.add(Message("fear me", "me.com"))
+
+        adapter = ChatMessageAdapter(messages)
+        binding.recycle.layoutManager = LinearLayoutManager(this)
+        binding.recycle.adapter = adapter
+
+
+
+
+        binding.sendButton.setOnClickListener {
+            val myMessage =  Message(
+                text = binding.messageText.text.toString(),
+                displayName = mAuth.currentUser?.email.toString()
+            )
+            database.reference.child("messages").push().setValue(myMessage)
+            binding.messageText.setText("")
+
+        }
     }
 }
