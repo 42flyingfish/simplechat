@@ -29,7 +29,6 @@ class ChatMessageAdapter(private val dataSet: MutableList<Message>) :
     }
 
     override fun getItemCount(): Int {
-        Log.d("getItemCount", "Item count is ${dataSet.size}")
         return dataSet.size
     }
 

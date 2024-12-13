@@ -3,8 +3,6 @@ package com.example.simplechat
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,12 +10,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.simplechat.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
@@ -47,70 +44,77 @@ class MainActivity : AppCompatActivity() {
         if (mAuth.currentUser == null)
             startActivity(Intent(this, SigninActivity::class.java))
 
-
-
-        Toast.makeText(baseContext,
-            "You made it ${mAuth.currentUser?.email}",
-            Toast.LENGTH_LONG).show()
-
         mData = Firebase.database.reference
         mDataWatch = FirebaseDatabase.getInstance().getReference("messages")
         val database = Firebase.database
-
-
-        // Dummy messages to check the recycler
-        messages.add(Message("what", "how.com"))
-        messages.add(Message("woooot", "how.com"))
-        messages.add(Message("fear me", "me.com"))
 
         adapter = ChatMessageAdapter(messages)
         binding.recycle.layoutManager = LinearLayoutManager(this)
         binding.recycle.adapter = adapter
 
-        // Listen for changes in the database
-        // Notice that the messages is passed by reference to the adapter.
-        // We can update the adapter by updating messages directly and then
-        // calling forceRefresh
-        // This is not a good idea for encapsilation.
-        mDataWatch.addValueEventListener(object : ValueEventListener {
-
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // check before clearing
-                Log.d("Messages", "addValueEventListener Fetched messages: $messages")
-                // Clear the existing messages
-                messages.clear()
-                // Read messages from the database
-                for (messageSnapshot in dataSnapshot.children) {
-                    val message = messageSnapshot.getValue(Message::class.java)
-                    if (message != null) {
-                        messages.add(message)
-                    }
+        mDataWatch.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                //TODO("Not yet implemented")
+                val newMessage =  snapshot.getValue(Message::class.java)
+                if (newMessage == null) {
+                    Log.d("adChildEventListener", "The newMessage was null")
+                } else {
+                    messages.add(newMessage)
+                    adapter.notifyItemInserted(messages.size-1)
+                    binding.recycle.scrollToPosition(messages.size-1)
+                    Log.d("onChildAdded", "onChildAdded: ${previousChildName}")
                 }
-                Log.d("Messages", "addValueEventListener Fetched messages: $messages")
-                // Update the adapter with the new messages
-                Log.d("Database change", "addValueEventListener The dataset now contains ${messages.size}")
-                //adapter.updateMessages(messages)
-                adapter.forceRefresh()
+
             }
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
-                Log.d("DBERROR", "onCancelled: ${databaseError.toString()}")
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {
+                val removedKey = snapshot.key
+                val index = messages.indexOfFirst { it.key == removedKey }
+                messages.removeAt(index)
+                adapter.notifyItemRemoved(index)
+                if (messages.size > 0) binding.recycle.scrollToPosition(messages.size-1)
+
+            }
+
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                //TODO("Not yet implemented")
+                // There is no need to reorder unless I want to do something.
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                val changedKey = snapshot.key
+                val newMessage = snapshot.getValue(Message::class.java)
+                val index = messages.indexOfFirst { it.key == changedKey }
+                messages.elementAt(index).text= newMessage?.text
+                messages.elementAt(index).displayName = newMessage?.displayName
+                adapter.notifyItemChanged(index)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                    Log.w("onCanceled", error.toString())
             }
         })
 
 
 
 
-
-
         binding.sendButton.setOnClickListener {
-            val myMessage =  Message(
-                text = binding.messageText.text.toString(),
-                displayName = mAuth.currentUser?.email.toString()
-            )
-            database.reference.child("messages").push().setValue(myMessage)
-            binding.messageText.setText("")
+            if (binding.messageText.text.toString() != ""){
 
+                // Reference
+                val reference = database.reference.child("messages").push()
+
+                // Prepare the message
+                val myMessage = Message(
+                    text = binding.messageText.text.toString(),
+                    displayName = mAuth.currentUser?.email.toString(),
+                    key = reference.key
+                )
+
+                // Actually set the values
+                reference.setValue(myMessage)
+                binding.messageText.setText("")
+            }
         }
     }
 }
