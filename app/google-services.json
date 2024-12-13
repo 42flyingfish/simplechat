@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "807856165205",
+    "project_id": "simplechat-41466",
+    "storage_bucket": "simplechat-41466.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:807856165205:android:aa351f2741ec9c41b1dfdc",
+        "android_client_info": {
+          "package_name": "com.example.simplechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4ERH4rbxx56Ynzc2rmvG3i-WDt25cOd8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
